@@ -1771,7 +1771,7 @@ tables.Trade.ensureIndex({
 function open (name) {
   const db = tables[name];
   return {
-    get: async () => db.getAll(),
+    get: async () => db.getAll().map(rec => ({ ...rec })),
     upsert: async docs => db.upsert(docs),
     delete: async docs => db.delete(docs)
   }
@@ -2025,7 +2025,7 @@ const info = log.level(1);
 
 function main (opts) {
   const { port, backend, saveDelay } = opts;
-  const version = '0.1.0';
+  const version = '0.1.1';
   info('version %s', version);
   info('started');
 
@@ -2086,7 +2086,7 @@ function bail (err) {
   process.exit(2);
 }
 
-const version = '0.1.0';
+const version = '0.1.1';
 const opts = mri(process.argv.slice(2), {
   alias: {
     saveDelay: 'save-delay',
