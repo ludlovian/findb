@@ -2025,7 +2025,7 @@ const info = log.level(1);
 
 function main (opts) {
   const { port, backend, saveDelay } = opts;
-  const version = '0.0.1';
+  const version = '0.1.0';
   info('version %s', version);
   info('started');
 
@@ -2086,7 +2086,7 @@ function bail (err) {
   process.exit(2);
 }
 
-const version = '0.0.1';
+const version = '0.1.0';
 const opts = mri(process.argv.slice(2), {
   alias: {
     saveDelay: 'save-delay',
