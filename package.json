@@ -1,0 +1,37 @@
+{
+  "name": "findb",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/index.mjs",
+  "scripts": {
+    "clean": "rm -rf dist/ node_modules/.cache/",
+    "lint": "standard '{src,test}/**/*.mjs'|snazzy",
+    "format": "prettier-standard '{src,test}/**/*.mjs'",
+    "build": "rollup -c rollup.config.js",
+    "postbuild": "chmod +x dist/findb.mjs",
+    "version": "npm run build && git add dist/findb.mjs",
+    "test": "c8 uvu"
+  },
+  "author": "",
+  "license": "Unlicense",
+  "dependencies": {
+    "@google-cloud/datastore": "^6.4.1"
+  },
+  "devDependencies": {
+    "@lukeed/ms": "^2.0.0",
+    "@polka/parse": "^1.0.0-next.15",
+    "@polka/send": "^1.0.0-next.15",
+    "@rollup/plugin-node-resolve": "^13.0.0",
+    "@rollup/plugin-replace": "^2.4.2",
+    "googlejs": "github:ludlovian/googlejs#semver:^1.6.0",
+    "httpie": "^1.1.2",
+    "jsdb": "github:ludlovian/jsdb#semver:^4.0.0",
+    "logjs": "github:ludlovian/logjs",
+    "memdb": "github:ludlovian/memdb",
+    "mri": "^1.1.6",
+    "pixutil": "github:ludlovian/pixutil",
+    "polka": "^1.0.0-next.15",
+    "sortby": "github:ludlovian/sortby",
+    "uvu": "^0.5.1"
+  }
+}
