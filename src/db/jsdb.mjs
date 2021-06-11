@@ -20,7 +20,7 @@ tables.Trade.ensureIndex({
 export default function open (name) {
   const db = tables[name]
   return {
-    get: async () => db.getAll(),
+    get: async () => db.getAll().map(rec => ({ ...rec })),
     upsert: async docs => db.upsert(docs),
     delete: async docs => db.delete(docs)
   }
