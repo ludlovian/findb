@@ -6,7 +6,7 @@ import googleBackend from './google.mjs'
 import memBackend from './mem.mjs'
 import jsdbBackend from './jsdb.mjs'
 
-const info = log.level(2)
+const info = log.prefix('findb:db:').level(2)
 
 export default function connect (backend) {
   /* c8 ignore next 2 */
@@ -48,6 +48,9 @@ class Table extends MemTable {
       await this.store.delete(deleted)
       info('Deleted %d rows from %s', deleted.length, this.name)
     }
+
+    /* c8 ignore next */
+    if (this.store.onsave) this.store.onsave()
   }
 }
 

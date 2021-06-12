@@ -6,7 +6,7 @@ import log from 'logjs'
 import connect from './db/index.mjs'
 import makeApp from './app.mjs'
 
-const info = log.level(1)
+const info = log.prefix('findb:main:').level(1)
 
 export default function main (opts) {
   const { port, backend, saveDelay } = opts
@@ -45,7 +45,7 @@ function makeSaver (db, delay) {
 
   function save () {
     tm = null
-    log.level(2)('Storing updates')
+    info.level(2)('Storing updates')
     db.save().catch(bail)
   }
 
