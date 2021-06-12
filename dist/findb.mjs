@@ -2023,6 +2023,7 @@ function makeApp (app) {
       tickers.add(pos.ticker);
     }
     const data = [...db.stocks.all()].filter(s => tickers.has(s.ticker));
+    res.emit('report', data);
     send(res, 200, data);
   }
 }
@@ -2049,7 +2050,7 @@ const info = log.prefix('findb:main:').level(1);
 
 function main (opts) {
   const { port, backend, saveDelay } = opts;
-  const version = '0.2.0';
+  const version = '1.0.0';
   info('version %s', version);
   info('started');
 
@@ -2110,7 +2111,7 @@ function bail (err) {
   process.exit(2);
 }
 
-const version = '0.2.0';
+const version = '1.0.0';
 const opts = mri(process.argv.slice(2), {
   alias: {
     saveDelay: 'save-delay',
