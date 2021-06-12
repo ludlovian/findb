@@ -1751,34 +1751,41 @@ class Database {
 
 Object.assign(Database, { KeyViolation, NotExists, NoIndex, DatabaseLocked });
 
+let tables;
+
 /* c8 ignore start */
-const tables = {
-  Position: new Database('position.db'),
-  Stock: new Database('stock.db'),
-  Trade: new Database('trade.db')
-};
-
-tables.Position.ensureIndex({
-  name: 'primary',
-  fields: ['who', 'account', 'ticker']
-});
-tables.Stock.ensureIndex({ name: 'primary', fields: ['ticker'] });
-tables.Trade.ensureIndex({
-  name: 'primary',
-  fields: ['who', 'account', 'ticker', 'seq']
-});
-
 function open (name) {
+  if (!tables) makeTables();
   const db = tables[name];
   return {
-    get: async () => db.getAll().map(rec => ({ ...rec })),
+    get: async () => (await db.getAll()).map(rec => ({ ...rec })),
     upsert: async docs => db.upsert(docs),
-    delete: async docs => db.delete(docs)
+    delete: async docs => db.delete(docs),
+    onsave: async () => db.compact()
   }
+}
+
+function makeTables () {
+  const Position = new Database('position.db');
+  Position.ensureIndex({
+    name: 'primary',
+    fields: ['who', 'account', 'ticker']
+  });
+
+  const Stock = new Database('stock.db');
+  Stock.ensureIndex({ name: 'primary', fields: ['ticker'] });
+
+  const Trade = new Database('trade.db');
+  Trade.ensureIndex({
+    name: 'primary',
+    fields: ['who', 'account', 'ticker', 'seq']
+  });
+
+  tables = { Position, Stock, Trade };
 }
 /* c8 ignore end */
 
-const info$2 = log.level(2);
+const info$2 = log.prefix('findb:db:').level(2);
 
 function connect (backend) {
   /* c8 ignore next 2 */
@@ -1820,6 +1827,9 @@ class Table extends Table$2 {
       await this.store.delete(deleted);
       info$2('Deleted %d rows from %s', deleted.length, this.name);
     }
+
+    /* c8 ignore next */
+    if (this.store.onsave) this.store.onsave();
   }
 }
 
@@ -1957,13 +1967,13 @@ function json(opts={}) {
 	return parse({ type, parser, limit });
 }
 
-const info$1 = log.level(2);
+const info$1 = log.prefix('findb:app:').level(2);
 
 function makeApp (app) {
   const db = app.db;
 
+  app.use(json({ limit: 1e7 }));
   app.use(logRequest);
-  app.use(json());
 
   app.get('/stock', getData('stocks'));
   app.get('/stock/active', getActiveStocks);
@@ -1978,14 +1988,10 @@ function makeApp (app) {
   app.put('/trade', updateData('trades'));
   app.delete('/trade', deleteData('trades'));
 
-  function logRequest (req, res, next) {
-    info$1('%s %s', req.method, req.url);
-    next();
-  }
-
   function getData (table) {
     return (req, res) => {
       const data = [...db[table].all()];
+      res.emit('report', data);
       send(res, 200, data);
     }
   }
@@ -2021,11 +2027,29 @@ function makeApp (app) {
   }
 }
 
-const info = log.level(1);
+function logRequest (req, res, next) {
+  res.once('report', data => {
+    let items = '';
+    if (data) {
+      const n = arrify(data).length;
+      items = pluralise(` (${n} items?)`, n);
+    }
+    info$1('%s %s%s', req.method, req.url, items);
+  });
+
+  if (req.method !== 'GET') res.emit('report', req.body);
+  next();
+}
+
+function pluralise (s, n) {
+  return n > 1 ? s.replaceAll('s?', 's') : s.replaceAll('s?', '')
+}
+
+const info = log.prefix('findb:main:').level(1);
 
 function main (opts) {
   const { port, backend, saveDelay } = opts;
-  const version = '0.1.1';
+  const version = '0.2.0';
   info('version %s', version);
   info('started');
 
@@ -2060,7 +2084,7 @@ function makeSaver (db, delay) {
 
   function save () {
     tm = null;
-    log.level(2)('Storing updates');
+    info.level(2)('Storing updates');
     db.save().catch(bail);
   }
 
@@ -2086,7 +2110,7 @@ function bail (err) {
   process.exit(2);
 }
 
-const version = '0.1.1';
+const version = '0.2.0';
 const opts = mri(process.argv.slice(2), {
   alias: {
     saveDelay: 'save-delay',
