@@ -1,0 +1,13 @@
+[Unit]
+Description=FinDB
+After=network.target
+
+[Service]
+User=alan
+WorkingDirectory=/home/alan/dev/findb
+Environment=NODE_ENV=production
+Environment=LOGLEVEL=5
+ExecStart=/usr/local/bin/node dist/findb.mjs
+
+[Install]
+WantedBy=multi-user.target
