@@ -60,6 +60,7 @@ export default function makeApp (app) {
       tickers.add(pos.ticker)
     }
     const data = [...db.stocks.all()].filter(s => tickers.has(s.ticker))
+    res.emit('report', data)
     send(res, 200, data)
   }
 }
